@@ -287,10 +287,10 @@ private:
     // <rtc-template block="private_operation">
 
     // </rtc-template>
-    RTC::Path2D *m_path;
-    RTC::Pose2D m_target;
+    RTC::Path2D *path_;
+    RTC::Pose2D saved_target_;
 
-    unsigned long waypoints_counter;
+    unsigned long waypoints_counter_;
 
 
 };

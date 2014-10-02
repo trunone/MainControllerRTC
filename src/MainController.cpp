@@ -81,9 +81,9 @@ RTC::ReturnCode_t MainController::onInitialize()
     // <rtc-template block="bind_config">
     // </rtc-template>
 
-    m_target.position.x = 0;
-    m_target.position.y = 0;
-    m_target.heading = 0.0;
+    saved_target_.position.x = 0;
+    saved_target_.position.y = 0;
+    saved_target_.heading = 0.0;
 
     return RTC::RTC_OK;
 }
@@ -127,57 +127,52 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
     if(m_current_poseIn.isNew())
         m_current_poseIn.read();
 
-    enum { go_forward = 1, go_backward, turn_right, turn_left, stop, move_to, save_target };
+    enum { kGoForward = 1, kGoBackward, kTurnRight, kTurnLeft, kStop, kMoveTo, kSaveTarget };
 
     if(m_commandIn.isNew()) {
         m_commandIn.read();
         m_target_velocity.data.vy = 0;
         switch(m_command.data) {
-        case go_forward:
+        case kGoForward:
             m_target_velocity.data.vx = 0.1;
             m_target_velocity.data.va = 0;
             m_target_velocityOut.write();
             break;
-        case go_backward:
+        case kGoBackward:
             m_target_velocity.data.vx = -0.1;
             m_target_velocity.data.va = 0;
             m_target_velocityOut.write();
             break;
-        case turn_left:
+        case kTurnLeft:
             m_target_velocity.data.vx = 0;
             m_target_velocity.data.va = 0.2;
             m_target_velocityOut.write();
             break;
-        case turn_right:
+        case kTurnRight:
             m_target_velocity.data.vx = 0;
             m_target_velocity.data.va = -0.2;
             m_target_velocityOut.write();
             break;
-        case stop:
+        case kStop:
             m_target_velocity.data.vx = 0;
             m_target_velocity.data.va = 0;
             m_target_velocityOut.write();
             break;
-        case move_to:
-            m_get_path->get_path(m_path, m_current_pose.data, m_target);
-            if(m_path->waypoints.length() > 0)
+        case kMoveTo:
+            m_get_path->get_path(path_, m_current_pose.data, saved_target_);
+            if(path_->waypoints.length() > 0)
             {
-                std::cout<<"Path build"<<std::endl;
-                m_target_position.data.position.x = m_path->waypoints[0].target.position.x;
-                m_target_position.data.position.y = m_path->waypoints[0].target.position.y;
-                //m_target_position.data.heading = m_path->waypoints[0].target.heading;
+                m_target_position.data.position.x = path_->waypoints[0].target.position.x;
+                m_target_position.data.position.y = path_->waypoints[0].target.position.y;
                 m_target_position.data.heading = 0.0;
-                std::cout<<"Waypoint Length "<<m_path->waypoints.length()<<std::endl;
-                std::cout<<"First Point "<<m_target_position.data.position.x<<" "<<m_target_position.data.position.y<<std::endl;
                 m_target_positionOut.write();
-                waypoints_counter = 1;
+                waypoints_counter_ = 1;
             }
             break;
-        case save_target:
-            m_target.position.x = m_current_pose.data.position.x;
-            m_target.position.y = m_current_pose.data.position.y;
-            m_target.heading = m_current_pose.data.heading;
-            std::cout<<"Save Point "<<m_target.position.x<<" "<<m_target.position.y<<std::endl;
+        case kSaveTarget:
+            saved_target_.position.x = m_current_pose.data.position.x;
+            saved_target_.position.y = m_current_pose.data.position.y;
+            saved_target_.heading = m_current_pose.data.heading;
             break;
         default:
             break;
@@ -188,16 +183,13 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
     if(m_target_arrivalIn.isNew())
     {
         m_target_arrivalIn.read();
-        std::cout<<"Arrival? "<<m_target_arrival.data<<std::endl;
-        if(m_target_arrival.data && waypoints_counter < m_path->waypoints.length())
+        if(m_target_arrival.data && waypoints_counter_ < path_->waypoints.length())
         {
-            m_target_position.data.position.x = m_path->waypoints[waypoints_counter].target.position.x;
-            m_target_position.data.position.y = m_path->waypoints[waypoints_counter].target.position.y;
-            //m_target_position.data.heading = m_path->waypoints[waypoints_counter].target.heading;
+            m_target_position.data.position.x = path_->waypoints[waypoints_counter_].target.position.x;
+            m_target_position.data.position.y = path_->waypoints[waypoints_counter_].target.position.y;
             m_target_position.data.heading = 0.0;
             m_target_positionOut.write();
-            std::cout<<"Point "<<m_target_position.data.position.x<<" "<<m_target_position.data.position.y<<std::endl;
-            waypoints_counter++;
+            waypoints_counter_++;
         }
     }
 
