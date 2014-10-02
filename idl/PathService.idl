@@ -1,0 +1,16 @@
+#ifndef PathPlanning_idl
+#define PathPlanning_idl
+
+#include "BasicDataType.idl"
+#include "ExtendedDataTypes.idl"
+#include "InterfaceDataTypes.idl"
+
+module RTC
+{
+    interface PathService
+    {
+        void get_path(out Path2D path, in Pose2D position, in Pose2D target);
+    };
+};
+
+#endif
