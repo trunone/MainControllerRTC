@@ -131,7 +131,7 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
 
     if(m_commandIn.isNew()) {
         m_commandIn.read();
-        m_target_velocity.data.vy = 0;
+        m_target_velocity.data.vy = 0; // Kobuki has no y-axis velocity
         switch(m_command.data) {
         case kGoForward:
             m_target_velocity.data.vx = 0.1;
@@ -159,9 +159,11 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
             m_target_velocityOut.write();
             break;
         case kMoveTo:
+            // Get path from PathService
             m_get_path->get_path(path_, m_current_pose.data, saved_target_);
-            if(path_->waypoints.length() > 0)
+            if(path_->waypoints.length() > 0) // if the path existed
             {
+                // Copy next target position
                 m_target_position.data.position.x = path_->waypoints[0].target.position.x;
                 m_target_position.data.position.y = path_->waypoints[0].target.position.y;
                 m_target_position.data.heading = 0.0;
@@ -170,6 +172,7 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
             }
             break;
         case kSaveTarget:
+            // Save the position of Kobuki
             saved_target_.position.x = m_current_pose.data.position.x;
             saved_target_.position.y = m_current_pose.data.position.y;
             saved_target_.heading = m_current_pose.data.heading;
@@ -183,6 +186,7 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
     if(m_target_arrivalIn.isNew())
     {
         m_target_arrivalIn.read();
+        // If Kobuki arrived the target position
         if(m_target_arrival.data && waypoints_counter_ < path_->waypoints.length())
         {
             m_target_position.data.position.x = path_->waypoints[waypoints_counter_].target.position.x;
