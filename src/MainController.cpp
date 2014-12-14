@@ -176,6 +176,9 @@ RTC::ReturnCode_t MainController::onExecute(RTC::UniqueId ec_id)
             saved_target_.position.x = m_current_pose.data.position.x;
             saved_target_.position.y = m_current_pose.data.position.y;
             saved_target_.heading = m_current_pose.data.heading;
+            std::cout<<saved_target_.position.x<<std::endl;
+            std::cout<<saved_target_.position.y<<std::endl;
+            std::cout<<saved_target_.heading<<std::endl;
             break;
         default:
             break;
